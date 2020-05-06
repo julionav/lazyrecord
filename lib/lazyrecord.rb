@@ -26,8 +26,6 @@ class Store
 
   def next_id(entity_name)
     transaction do
-      p entity_name
-      p @data[current_id_key(entity_name)]
       @data[current_id_key(entity_name)] += 1
     end
   end
@@ -107,13 +105,5 @@ class LazyRecord
   def save
     @id ||= self.class.next_id
     self.class.save(self)
-  end
-end
-
-class Task < LazyRecord
-  attr_accessor :title
-
-  def initialize(title)
-    @title = title
   end
 end
