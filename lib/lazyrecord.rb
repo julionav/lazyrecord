@@ -2,7 +2,11 @@ require "pstore"
 
 class Store
   def initialize(name)
-    @data = PStore.new("#{name}.pstore")
+    @name = name
+    @data = PStore.new("#{@name}.pstore")
+    transaction do
+      @entities = @data.roots.reject { |entity| entity.include? "current_id" }
+    end
   end
 
   def create_entity(name)
@@ -11,6 +15,10 @@ class Store
         @data[name] = {}
         @data[current_id_key(name)] = 0
       end
+    end
+
+    unless @entities.include? name
+      @entities << name
     end
   end
 
@@ -36,12 +44,6 @@ class Store
     end
   end
 
-  def entities
-    transaction do
-      @data.roots
-    end
-  end
-
   def transaction
     @data.transaction do
       yield
@@ -51,6 +53,30 @@ class Store
   def save(entity_name, record)
     transaction do
       @data[entity_name][record.id] = record
+    end
+  end
+
+  def delete(entity_name, id)
+    transaction do
+      p @data[entity_name]
+    end
+
+    transaction do
+      @data[entity_name].delete(id)
+    end
+
+    transaction do
+      p @data[entity_name]
+    end
+  end
+
+  def flush!
+    @entities.each do |entity|
+      transaction do
+        @data.delete(entity)
+        @data.delete(current_id_key(entity))
+      end
+      create_entity(entity)
     end
   end
 end
@@ -95,9 +121,13 @@ class LazyRecord
       store.save(entity_name, record)
     end
 
+    def delete(id)
+      store.delete(entity_name, id)
+    end
+
     def create(*args)
       record = new(*args)
-      save(record)
+      record.save
       record
     end
   end

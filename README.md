@@ -49,6 +49,12 @@ You can find a record by id.
 post = Post.find(1)
 ```
 
+You can delete a record by id
+
+```ruby
+Post.delete(1)
+```
+
 You can get all the posts as an array:
 
 ```ruby
