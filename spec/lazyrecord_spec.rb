@@ -5,29 +5,55 @@ class Task < LazyRecord
 
   def initialize(text:)
     @text = text
-    @completd = false
+    @completed = false
   end
 end
 
-describe LazyRecord do
-  before :each do
-    LazyRecord.store.flush!
-  end
+class StickyNote < LazyRecord
+  attr_accessor :notes, :group
 
+  def initialize(notes:, group: "general")
+    @notes = notes
+    @group = group
+  end
+end
+
+LazyRecord.register(Task, StickyNote)
+
+describe LazyRecord do
   describe "::create" do
-    it "creates and save a record" do
+    it "creates and save a task record" do
+      current_count = Task.all.length
       Task.create(text: "hola")
-      expect(Task.all.length).to be(1)
+      expect(Task.all.length).to be(current_count + 1)
+    end
+
+    it "creates and save a sticky record" do
+      current_count = StickyNote.all.length
+      StickyNote.create(notes: "hola")
+      expect(StickyNote.all.length).to be(current_count + 1)
     end
   end
 
   describe "::delete" do
-    it "deletes a record" do
-      Task.create(text: "hola")
-      expect(Task.all.length).to be(1)
+    it "deletes a task record" do
+      current_count = Task.all.length
 
-      Task.delete(1)
-      expect(Task.all.length).to be(0)
+      Task.create(text: "hola")
+      expect(Task.all.length).to be(current_count + 1)
+
+      Task.delete(current_count)
+      expect(Task.all.length).to be(current_count)
+    end
+
+    it "deletes a sticky record" do
+      current_count = StickyNote.all.length
+
+      StickyNote.create(notes: "hola")
+      expect(StickyNote.all.length).to be(current_count + 1)
+
+      StickyNote.delete(current_count)
+      expect(StickyNote.all.length).to be(current_count)
     end
   end
 end

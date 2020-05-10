@@ -87,8 +87,8 @@ class LazyRecord
   attr_accessor :id
 
   class << self
-    def inherited(child_class)
-      store.create_entity(child_class.name.downcase)
+    def register(*classes)
+      classes.each { |class_obj| store.create_entity(class_obj.name.downcase) }
     end
 
     def entity_name
