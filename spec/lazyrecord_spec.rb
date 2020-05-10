@@ -5,7 +5,15 @@ class Task < LazyRecord
 
   def initialize(text:)
     @text = text
-    @completd = false
+    @completed = false
+  end
+end
+
+class Post < LazyRecord
+  attr_accessor :text
+
+  def initialize(text)
+    @text = text
   end
 end
 
@@ -18,6 +26,15 @@ describe LazyRecord do
     it "creates and save a record" do
       Task.create(text: "hola")
       expect(Task.all.length).to be(1)
+    end
+
+    context "with multiple models" do
+      it "creates and save records" do
+        Task.create(text: "HOLA!")
+        Post.create("WORKS?")
+        expect(Task.all.length).to be(1)
+        expect(Post.all.length).to be(1)
+      end
     end
   end
 
