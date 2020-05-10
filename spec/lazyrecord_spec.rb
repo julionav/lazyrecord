@@ -18,8 +18,6 @@ class StickyNote < LazyRecord
   end
 end
 
-LazyRecord.register(Task, StickyNote)
-
 describe LazyRecord do
   describe "::create" do
     it "creates and save a task record" do

@@ -84,11 +84,23 @@ end
 class LazyRecord
   STORE_NAME = "lazyrecord"
 
-  attr_accessor :id
+  attr_accessor :id, :ready
 
   class << self
-    def register(*classes)
-      classes.each { |class_obj| store.create_entity(class_obj.name.downcase) }
+    def inherited(child_class)
+      @ready = false
+      @@models << child_class
+    rescue NameError
+      @@models = child_class
+    end
+
+    def gateway
+      register unless @ready
+    end
+
+    def register
+      store.create_entity(name.downcase)
+      @ready = true
     end
 
     def entity_name
@@ -137,3 +149,9 @@ class LazyRecord
     self.class.save(self)
   end
 end
+
+
+set_trace_func proc { |event, _file, _line, _id, _binding, classname|
+  # only interested in events of type 'call' of LazyRecord
+  classname.send('gateway') if event == 'call' && classname == 'LazyRecord'
+}
